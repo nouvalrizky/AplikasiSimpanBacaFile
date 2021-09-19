@@ -3,14 +3,22 @@ package com.example.fileaplication;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
@@ -18,7 +26,6 @@ public class MainActivity extends AppCompatActivity {
     Button tombolNewFile, tombolSaveFile, tombolOpenFile;
     EditText inputTitle, inputFileData;
     File path;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,45 +37,44 @@ public class MainActivity extends AppCompatActivity {
         tombolOpenFile = findViewById(R.id.tombolOpenFile);
         inputTitle = findViewById(R.id.inputTitle);
         inputFileData = findViewById(R.id.inputFileData);
-        path = getFilesDir();
-
 
         tombolNewFile.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                newFile();
+                fileBaru();
             }
         });
 
         tombolOpenFile.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                openFile();
+                lihatDaftarFile();
             }
         });
 
         tombolSaveFile.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                saveFile();
+                simpanFile();
             }
         });
     }
 
 //  Method untuk membuat file baru
-    public void newFile(){
-        inputTitle.setText("");
-        inputFileData.setText("");
-        Toast.makeText(this, "Buka File Baru!", Toast.LENGTH_SHORT).show();
+    public void fileBaru(){
+        inputTitle.getText().clear();
+        inputFileData.getText().clear();
+        Toast.makeText(this, "Membuka File Baru!", Toast.LENGTH_SHORT).show();
     }
 
-//  Method untuk membuka file yang sudah ada
-    private void openFile(){
-        final ArrayList<String> arrayList = new ArrayList<String>();
+//  Method untuk menampilkan daftar file
+    private void lihatDaftarFile(){
+        path = getFilesDir();
+        ArrayList<String> listFile = new ArrayList<String>();
         for (String file : path.list()){
-            arrayList.add(file);
+            listFile.add(file);
         }
-        final CharSequence[] items = arrayList.toArray(new CharSequence[arrayList.size()]);
+        final String[] items = listFile.toArray(new String[listFile.size()]);
 
 //      Membuat Alert Dialog untuk menampilkan daftar file
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -76,30 +82,64 @@ public class MainActivity extends AppCompatActivity {
         builder.setItems(items, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
-                loadData(items[i].toString());
+                bacaFile(items[i].toString());
             }
         });
         AlertDialog alertDialog = builder.create();
         alertDialog.show();
     }
 
-//  Method untuk menyimpan file
-    public void saveFile(){
-        if(inputTitle.getText().toString().isEmpty()){
-            Toast.makeText(this, "Isi Title terlebih dahulu!", Toast.LENGTH_SHORT).show();
-        }else{
-            String title = inputTitle.getText().toString();
-            String fileData = inputFileData.getText().toString();
-            FileHandling.simpanFile(title, fileData, this);
-            Toast.makeText(this, "Menyimpan file " + title, Toast.LENGTH_SHORT).show();
+//  Method untuk memuat dan menampilkan file
+    private void bacaFile(String title){
+
+        String finalFile = "";
+
+        try{
+            InputStream inputStream = this.openFileInput(title);
+
+            if (inputStream != null){
+                InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
+                BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+                StringBuilder stringBuilder = new StringBuilder();
+                String text;
+
+                while((text = bufferedReader.readLine()) != null){
+                    stringBuilder.append(text);
+                    stringBuilder.append(System.getProperty("line.separator"));
+                }
+                inputStream.close();
+                finalFile = stringBuilder.toString();
+            }
+
+        } catch (FileNotFoundException e) {
+            Log.e("File Tidak Ditemukan", e.toString());
+        } catch (IOException e) {
+            Log.e("Tidak Dapat Baca File", e.toString());
         }
+
+        inputTitle.setText(title);
+        inputFileData.setText(finalFile);
     }
 
-//  Method untuk memuat dan menampilkan file
-    private void loadData(String title){
-        String text = FileHandling.bacaFile(this, title);
-        inputTitle.setText(title);
-        inputFileData.setText(text);
+//  Method untuk menyimpan file
+    public void simpanFile(){
+        String title = inputTitle.getText().toString();
+
+        if(title.isEmpty()){
+            Toast.makeText(this, "Isi Title terlebih dahulu!", Toast.LENGTH_SHORT).show();
+        }else{
+            String fileData = inputFileData.getText().toString();
+
+            try{
+                OutputStreamWriter outputStreamWriter = new OutputStreamWriter(this.openFileOutput(title, Context.MODE_PRIVATE));
+                outputStreamWriter.write(fileData);
+                outputStreamWriter.close();
+            } catch (IOException e) {
+                Log.e("Error", "File gagal ditulis : " + e.toString());
+            }
+
+            Toast.makeText(this, "Menyimpan file " + title, Toast.LENGTH_SHORT).show();
+        }
     }
 
 }
