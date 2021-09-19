@@ -55,23 +55,15 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+//  Method untuk membuat file baru
     public void newFile(){
         inputTitle.setText("");
         inputFileData.setText("");
         Toast.makeText(this, "Buka File Baru!", Toast.LENGTH_SHORT).show();
     }
 
-    private void loadData(String title){
-        String text = FileHandling.readFile(this, title);
-        inputTitle.setText(title);
-        inputFileData.setText(text);
-    }
-
-    public void openFile(){
-        showList();
-    }
-
-    private void showList(){
+//  Method untuk membuka file yang sudah ada
+    private void openFile(){
         final ArrayList<String> arrayList = new ArrayList<String>();
         for (String file : path.list()){
             arrayList.add(file);
@@ -91,15 +83,23 @@ public class MainActivity extends AppCompatActivity {
         alertDialog.show();
     }
 
+//  Method untuk menyimpan file
     public void saveFile(){
         if(inputTitle.getText().toString().isEmpty()){
             Toast.makeText(this, "Isi Title terlebih dahulu!", Toast.LENGTH_SHORT).show();
         }else{
             String title = inputTitle.getText().toString();
             String fileData = inputFileData.getText().toString();
-            FileHandling.writeFile(title, fileData, this);
+            FileHandling.simpanFile(title, fileData, this);
             Toast.makeText(this, "Menyimpan file " + title, Toast.LENGTH_SHORT).show();
         }
+    }
+
+//  Method untuk memuat dan menampilkan file
+    private void loadData(String title){
+        String text = FileHandling.bacaFile(this, title);
+        inputTitle.setText(title);
+        inputFileData.setText(text);
     }
 
 }

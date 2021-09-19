@@ -12,7 +12,8 @@ import java.io.OutputStreamWriter;
 
 public class FileHandling {
 
-    static void writeFile(String title, String fileData, Context context){
+//  Static method untuk menyimpan file
+    static void simpanFile(String title, String fileData, Context context){
         try{
             OutputStreamWriter outputStreamWriter = new OutputStreamWriter(context.openFileOutput(title, Context.MODE_PRIVATE));
             outputStreamWriter.write(fileData);
@@ -22,7 +23,8 @@ public class FileHandling {
         }
     }
 
-    static String readFile(Context context, String title){
+//  Static method untuk membaca file
+    static String bacaFile(Context context, String title){
         String rtnFile = "";
 
         try{
